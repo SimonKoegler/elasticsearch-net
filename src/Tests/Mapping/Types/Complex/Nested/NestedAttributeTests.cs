@@ -1,27 +1,28 @@
 ﻿using System;
 using Nest;
 
-namespace Tests.Mapping.Types.Complex.Object
+namespace Tests.Mapping.Types.Complex.Nested
 {
-	public class ObjectTest
+	public class NestedTest
 	{
 		public class InnerObject
 		{
 			public string Name { get; set; }
 		}
 
-		[Object(
+		[Nested(
+			IncludeInParent = true,
+			IncludeInRoot = false,
 			Dynamic = DynamicMapping.Strict,
 			Enabled = true,
-			IncludeInAll = true,
-			Path = "mypath")]
+			IncludeInAll = true)]
 		public InnerObject Full { get; set; }
 
-		[Object]
+		[Nested]
 		public InnerObject Minimal { get; set; }
 	}
 
-	public class ObjectMappingTests : TypeMappingTestBase<ObjectTest>
+	public class NestedAttributeTests : AttributeMappingTestBase<NestedTest>
 	{
 		protected override object ExpectJson => new
 		{
@@ -29,11 +30,12 @@ namespace Tests.Mapping.Types.Complex.Object
 			{
 				full = new
 				{
-					type = "object",
+					type = "nested",
+					include_in_parent = true,
+					include_in_root = false,
 					dynamic = "strict",
 					enabled = true,
 					include_in_all = true,
-					path = "mypath",
 					properties = new
 					{
 						name = new
@@ -51,7 +53,7 @@ namespace Tests.Mapping.Types.Complex.Object
 				},
 				minimal = new
 				{
-					type = "object",
+					type = "nested",
 					properties = new
 					{
 						name = new
@@ -69,19 +71,5 @@ namespace Tests.Mapping.Types.Complex.Object
 				}
 			}
 		};
-
-		protected override Func<PropertiesDescriptor<ObjectTest>, IPromise<IProperties>> FluentProperties => p => p
-			.Object<ObjectTest.InnerObject>(s => s
-				.AutoMap()
-				.Name(o => o.Full)
-				.Dynamic(DynamicMapping.Strict)
-				.Enabled()
-				.IncludeInAll()
-				.Path("mypath")
-			)
-			.Object<ObjectTest.InnerObject>(b => b
-				.AutoMap()
-				.Name(o => o.Minimal)
-			);
 	}
 }

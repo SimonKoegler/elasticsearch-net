@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 
 namespace Nest
 {
+	// TODO 5.x Make this a Union type
 	/// <summary>
 	/// Controls how elasticsearch handles dynamic mapping changes when a new document present new fields
 	/// </summary>
@@ -11,7 +12,7 @@ namespace Nest
 	public enum DynamicMapping
 	{
 		/// <summary>
-		/// Default value, allows unmapped fields to be cause a mapping update 
+		/// Default value, allows unmapped fields to be cause a mapping update
 		/// </summary>
 		[EnumMember(Value = "allow")]
 		Allow,

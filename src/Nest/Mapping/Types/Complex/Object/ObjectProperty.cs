@@ -16,9 +16,6 @@ namespace Nest
 		[JsonProperty("include_in_all")]
 		bool? IncludeInAll { get; set; }
 
-		[JsonProperty("path")]
-		string Path { get; set; }
-
 		[JsonProperty("properties", TypeNameHandling = TypeNameHandling.None)]
 		IProperties Properties { get; set; }
 	}
@@ -32,7 +29,6 @@ namespace Nest
 		public DynamicMapping? Dynamic { get; set; }
 		public bool? Enabled { get; set; }
 		public bool? IncludeInAll { get; set; }
-		public string Path { get; set; }
 		public IProperties Properties { get; set; }
 	}
 
@@ -55,7 +51,6 @@ namespace Nest
 		DynamicMapping? IObjectProperty.Dynamic { get; set; }
 		bool? IObjectProperty.Enabled { get; set; }
 		bool? IObjectProperty.IncludeInAll { get; set; }
-		string IObjectProperty.Path { get; set; }
 		IProperties IObjectProperty.Properties { get; set; }
 
 		protected ObjectPropertyDescriptorBase() : this("object") { }
@@ -76,9 +71,6 @@ namespace Nest
 
 		public TDescriptor IncludeInAll(bool includeInAll = true) =>
 			Assign(a => a.IncludeInAll = includeInAll);
-
-		public TDescriptor Path(string path) =>
-			Assign(a => a.Path = path);
 
 		public TDescriptor Properties(Func<PropertiesDescriptor<TChild>, IPromise<IProperties>> selector) =>
 			Assign(a => a.Properties = selector?.Invoke(new PropertiesDescriptor<TChild>(a.Properties))?.Value);

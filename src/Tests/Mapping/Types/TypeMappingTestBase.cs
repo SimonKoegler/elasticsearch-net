@@ -1,41 +1,42 @@
 ﻿using System;
 using Nest;
+using Elasticsearch.Net;
 using Tests.Framework;
 using static Tests.Framework.RoundTripper;
+using Tests.Framework.Integration;
+using Tests.Framework.MockData;
 
 namespace Tests.Mapping.Types
 {
-	public abstract class TypeMappingTestBase<T>
-			where T : class
+	public abstract class TypeMappingTestBase
+		: ApiIntegrationAgainstNewIndexTestBase<WritableCluster, IPutMappingResponse, IPutMappingRequest, PutMappingDescriptor<Project>, PutMappingRequest<Project>>
 	{
-		protected abstract object ExpectJson { get; }
 
-		protected virtual object ExpectJsonFluentOnly { get; }
+		public TypeMappingTestBase(WritableCluster cluster, EndpointUsage usage) : base(cluster, usage) { }
 
-		protected virtual bool AutoMap => false;
+		protected override LazyResponses ClientUsage() => Calls(
+			fluent: (client, f) => client.Map(f),
+			fluentAsync: (client, f) => client.MapAsync(f),
+			request: (client, r) => client.Map(r),
+			requestAsync: (client, r) => client.MapAsync(r)
+		);
 
-		protected abstract Func<PropertiesDescriptor<T>, IPromise<IProperties>> FluentProperties { get; }
+		protected override bool ExpectIsValid => true;
+		protected override int ExpectStatusCode => 200;
+		protected override HttpMethod HttpMethod => HttpMethod.PUT;
+		protected override string UrlPath => $"/{CallIsolatedValue}/project/_mapping";
 
-		protected virtual Func<PropertiesDescriptor<T>, IPromise<IProperties>> FluentOnlyProperties { get; }
+		protected abstract Func<PropertiesDescriptor<Project>, IPromise<IProperties>> FluentProperties { get; }
 
-		[U]
-		protected virtual void AttributeBasedSerializes() =>
-			Expect(ExpectJson)
-				.WhenSerializing(new PutMappingDescriptor<T>().AutoMap() as IPutMappingRequest);
+		protected abstract IProperties InitializerProperties { get; }
 
-		[U]
-		protected virtual void CodeBasedSerializes()
+		protected override Func<PutMappingDescriptor<Project>, IPutMappingRequest> Fluent => f => f
+			.Index(CallIsolatedValue)
+			.Properties(this.FluentProperties);
+
+		protected override PutMappingRequest<Project> Initializer => new PutMappingRequest<Project>(CallIsolatedValue, typeof(Project))
 		{
-			var descriptor = new PutMappingDescriptor<T>().Properties(FluentProperties);
-			if (this.AutoMap) descriptor.AutoMap();
-			Expect(ExpectJson)
-				.WhenSerializing(descriptor as IPutMappingRequest);
-
-			if (ExpectJsonFluentOnly != null)
-			{
-				Expect(ExpectJsonFluentOnly)
-					.WhenSerializing(new PutMappingDescriptor<T>().Properties(FluentOnlyProperties) as IPutMappingRequest);
-			}
-		}
+			Properties = this.InitializerProperties
+		};
 	}
 }
